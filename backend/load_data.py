@@ -43,19 +43,8 @@ def main() -> int:
     print(f"EE initialized. service_account={service_account} project={project}")
 
     # Hard-coded tiny bbox AOI (lon/lat). Small area keeps the hello-world quick.
-    aoi = ee.Geometry.Polygon(
-        [
-            [
-                [-122.50, 37.70],
-                [-122.50, 37.80],
-                [-122.35, 37.80],
-                [-122.35, 37.70],
-                [-122.50, 37.70],
-            ]
-        ],
-        proj="EPSG:4326",
-        geodesic=False,
-    )
+    bbox = (-122.50, 37.70, -122.35, 37.80)  # (minx, miny, maxx, maxy)
+    aoi = ee.Geometry.Rectangle(bbox, proj="EPSG:4326", geodesic=False)
 
     im = (
         ee.ImageCollection("GOOGLE/SATELLITE_EMBEDDING/V1/ANNUAL")
@@ -74,13 +63,14 @@ def main() -> int:
             "Verify `xee` is installed in the backend container."
         ) from e
 
-    geometry_coords = aoi.bounds().getInfo()["coordinates"]
+    # xee expects geometry as either a bbox tuple or an ee.Geometry.
+    geometry = bbox
 
     ds = xr.open_dataset(
         im,
         engine=EarthEngineBackendEntrypoint,
         projection=ee.Projection("EPSG:32610"),
-        geometry=geometry_coords,
+        geometry=geometry,
         scale=100,
         chunks={"time": 1, "X": 512, "Y": 512},
     )
