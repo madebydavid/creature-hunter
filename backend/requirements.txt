@@ -3,3 +3,7 @@ uvicorn[standard]
 earthengine-api
 xee==0.0.20
 xarray
+pymilvus
+pyproj
+numpy
+tabulate

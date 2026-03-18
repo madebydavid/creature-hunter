@@ -58,6 +58,7 @@ services:
     build:
       context: ./backend
     container_name: creature-hunter-backend
+    user: "1000:1000"
     ports:
       - "8000:8000"
     volumes:
