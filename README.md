@@ -1,0 +1,59 @@
+# Creature Hunter (skeleton)
+
+Docker Compose stack with:
+- Milvus (standalone) backed by etcd + MinIO
+- A FastAPI backend container
+
+## Prerequisites
+
+- Docker + Docker Compose v2 (`docker compose ...`)
+
+## Environment setup
+
+Copy the example env file and adjust as needed:
+
+```bash
+cp .env.example .env
+```
+
+### `.env` variables (example)
+
+The template lives in `.env.example`:
+
+```env
+# etcd
+ETCD_AUTO_COMPACTION_MODE=revision
+ETCD_AUTO_COMPACTION_RETENTION=1000
+ETCD_QUOTA_BACKEND_BYTES=4294967296
+ETCD_SNAPSHOT_COUNT=50000
+
+# minio
+MINIO_ROOT_USER=minioadmin
+MINIO_ROOT_PASSWORD=minioadmin
+```
+
+## Build containers
+
+```bash
+docker compose build
+```
+
+## Start containers
+
+```bash
+docker compose up -d
+```
+
+## Services
+
+| Service | Purpose | Ports |
+| --- | --- | --- |
+| `etcd` | Milvus metadata store | (internal) |
+| `minio` | S3-compatible object storage | `9000` (API), `9001` (console) |
+| `milvus` | Vector database | `19530` (gRPC), `9091` (health) |
+| `backend` | FastAPI app | `8000` |
+
+## Notes
+
+- `.env` is git-ignored. Commit changes by editing `.env.example` only.
+- Cursor ignore patterns for env files are stored in `.cursor/ignore` (the root `.cursorignore` filename was blocked by workspace permissions).
