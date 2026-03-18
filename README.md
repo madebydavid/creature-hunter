@@ -16,6 +16,14 @@ Copy the example env file and adjust as needed:
 cp .env.example .env
 ```
 
+Generate your GCP service account key file by running:
+
+```bash
+./setup-gcp.sh
+```
+
+This should create `./key.json` (git-ignored). The backend container mounts it read-only and sets `GOOGLE_APPLICATION_CREDENTIALS` to `/run/secrets/gcp-key.json`.
+
 ### `.env` variables (example)
 
 The template lives in `.env.example`:
