@@ -60,6 +60,8 @@ services:
     container_name: creature-hunter-backend
     ports:
       - "8000:8000"
+    volumes:
+      - ./backend:/app
     depends_on:
       milvus:
         condition: service_healthy
