@@ -119,7 +119,7 @@ if [[ "$KEY_EXISTS" == false ]]; then
     echo "Creating key..."
     gcloud iam service-accounts keys create "$KEY_FILE" \
         --iam-account="$SA_EMAIL"
-    chmod 600 "$KEY_FILE"
+    chmod 644 "$KEY_FILE"
 fi
 
 # ──────────────────────────────────────

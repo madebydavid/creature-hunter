@@ -22,7 +22,7 @@ Generate your GCP service account key file by running:
 ./setup-gcp.sh
 ```
 
-This should create `./key.json` (git-ignored). The backend container mounts it read-only and sets `GOOGLE_APPLICATION_CREDENTIALS` to `/run/secrets/gcp-key.json`.
+This should create `./key.json` (git-ignored). Docker Compose provides it to the backend as a file-based secret, and the backend sets `GOOGLE_APPLICATION_CREDENTIALS` to `/run/secrets/gcp-key.json`.
 
 ### `.env` variables (example)
 
@@ -50,6 +50,14 @@ docker compose build
 
 ```bash
 docker compose up -d
+```
+
+## Run AlphaEarth hello-world
+
+Once the stack is up, run the AlphaEarth embedding smoke test inside the backend container:
+
+```bash
+docker compose exec backend python load_data.py
 ```
 
 ## Services

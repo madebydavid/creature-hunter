@@ -67,8 +67,10 @@ services:
       MILVUS_HOST: milvus
       MILVUS_PORT: "19530"
       GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/gcp-key.json
-    volumes:
-      - ./key.json:/run/secrets/gcp-key.json:ro
+    secrets:
+      - source: gcp_key
+        target: gcp-key.json
+        mode: 0444
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -80,3 +82,7 @@ volumes:
   etcd_data:
   minio_data:
   milvus_data:
+
+secrets:
+  gcp_key:
+    file: ./key.json
