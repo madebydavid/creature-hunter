@@ -75,7 +75,7 @@ fi
 KEY_EXISTS=false
 if [[ -f "$KEY_FILE" ]]; then
     KEY_EXISTS=true
-    echo "  Key file already exists, will skip."
+    echo "  Key file already exists."
 else
     echo "  Key file will be created."
 fi
@@ -115,10 +115,18 @@ gcloud projects add-iam-policy-binding "$PROJECT_ID" \
     --role="roles/earthengine.viewer" \
     --condition=None --quiet
 
+gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+    --member="serviceAccount:$SA_EMAIL" \
+    --role="roles/serviceusage.serviceUsageConsumer" \
+    --condition=None --quiet
+
 if [[ "$KEY_EXISTS" == false ]]; then
     echo "Creating key..."
     gcloud iam service-accounts keys create "$KEY_FILE" \
         --iam-account="$SA_EMAIL"
+fi
+
+if [[ -f "$KEY_FILE" ]]; then
     chmod 644 "$KEY_FILE"
 fi
 
@@ -134,6 +142,9 @@ echo "  export GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/$KEY_FILE"
 echo "  export GCP_PROJECT_ID=$PROJECT_ID"
 echo "  export SERVICE_ACCOUNT_EMAIL=$SA_EMAIL"
 echo ""
-echo "One-time manual step — register with Earth Engine:"
+echo "One-time manual step — register this project for Earth Engine:"
+echo "  https://console.cloud.google.com/earth-engine/configuration?project=$PROJECT_ID"
+echo ""
+echo "Optional (user workflow):"
 echo "  https://code.earthengine.google.com"
 echo "  earthengine set_project $PROJECT_ID"
