@@ -54,6 +54,17 @@ services:
       retries: 3
       start_period: 90s
 
+  attu:
+    image: zilliz/attu:v2.5.12
+    container_name: creature-hunter-attu
+    environment:
+      MILVUS_URL: milvus:19530
+    ports:
+      - "8001:3000"
+    depends_on:
+      milvus:
+        condition: service_healthy
+
   postgres:
     image: postgres:16
     container_name: creature-hunter-postgres

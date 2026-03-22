@@ -2,6 +2,7 @@
 
 Docker Compose stack with:
 - Milvus (standalone) backed by etcd + MinIO
+- [Attu](https://github.com/zilliztech/attu) web UI for inspecting Milvus
 - A FastAPI backend container
 
 ## Prerequisites
@@ -129,8 +130,11 @@ docker compose exec backend python -m cli find-occurrences
 | `etcd` | Milvus metadata store | (internal) |
 | `minio` | S3-compatible object storage | `9000` (API), `9001` (console) |
 | `milvus` | Vector database | `19530` (gRPC), `9091` (health) |
+| `attu` | Milvus admin UI ([Attu](https://github.com/zilliztech/attu)) | `8001` (HTTP; maps to container port `3000`) |
 | `postgres` | Observations relational store | (internal) |
 | `backend` | FastAPI app | `8000` |
+
+**Milvus UI (Attu):** After `docker compose up -d`, open [http://localhost:8001](http://localhost:8001) in a browser. The `attu` service sets `MILVUS_URL=milvus:19530`, so it should connect to Milvus automatically; if the UI still asks for a Milvus address, enter `milvus:19530` (the Compose network hostname for the `milvus` service). This is intended for local inspection only; there is no extra Attu login layer beyond whoever can reach port `8001` on your machine.
 
 ## Database migrations (Alembic)
 
