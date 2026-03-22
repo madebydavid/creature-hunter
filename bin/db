@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+repo_root="$(cd "$script_dir/.." && pwd)"
+
+cd "$repo_root"
+
+if [[ ! -f "$repo_root/.env" ]]; then
+  echo "error: missing $repo_root/.env (copy from .env.example)" >&2
+  exit 1
+fi
+
+set -a
+# shellcheck disable=SC1091
+source "$repo_root/.env"
+set +a
+
+: "${POSTGRES_USER:?POSTGRES_USER is not set (check .env)}"
+: "${POSTGRES_DB:?POSTGRES_DB is not set (check .env)}"
+: "${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is not set (check .env)}"
+
+exec docker compose exec postgres \
+  env PGPASSWORD="$POSTGRES_PASSWORD" \
+  psql -h localhost -U "$POSTGRES_USER" -d "$POSTGRES_DB" "$@"

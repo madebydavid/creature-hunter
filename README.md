@@ -103,7 +103,16 @@ Once the stack is up, run the AlphaEarth embedding smoke test:
 docker compose exec backend python -m cli load-data
 ```
 
-**Checkpoints:** by default the SQLite checkpoint file is created next to the `load_data` command module (`checkpoints.sqlite`). For Docker bind mounts or a stable path, set **`CHECKPOINT_DB_PATH`** (e.g. `/data/checkpoints.sqlite`).
+**Checkpoints:** resume state for `load-data` is stored in Postgres in the **`embedding_ingest_checkpoint`** table (same database as `DATABASE_URL` on the backend service). Apply migrations before relying on resume. Legacy **`checkpoints.sqlite`** files are no longer used.
+
+Typical flow after pulling changes that add a migration:
+
+```bash
+docker compose up -d
+docker compose exec backend alembic upgrade head
+# optional: docker compose exec backend alembic current
+docker compose exec backend python -m cli load-data
+```
 
 ### NBN occurrences sample (`find-occurrences`)
 
@@ -139,7 +148,7 @@ cp .env.example .env
 docker compose up -d
 ```
 
-3. Apply migrations (create the initial `taxon` + `occurrence` tables):
+3. Apply migrations (creates `taxon`, `occurrence`, `embedding_ingest_checkpoint`, and any future tables):
 
 ```bash
 docker compose exec backend alembic upgrade head

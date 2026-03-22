@@ -1,5 +1,6 @@
 import os
 from collections.abc import Generator
+from contextlib import contextmanager
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
@@ -31,4 +32,24 @@ def get_db() -> Generator[Session, None, None]:
         yield db
     finally:
         db.close()
+
+
+@contextmanager
+def session_scope() -> Generator[Session, None, None]:
+    """CLI / scripts: one Session per `with` block, commit on success, rollback on error."""
+    global _engine, _SessionLocal
+    if _SessionLocal is None:
+        url = _require_env("DATABASE_URL")
+        _engine = create_engine(url, pool_pre_ping=True)
+        _SessionLocal = sessionmaker(bind=_engine, autocommit=False, autoflush=False)
+
+    session = _SessionLocal()
+    try:
+        yield session
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
 

@@ -1,10 +1,15 @@
+import datetime
 import json
+import os
+import sys
 import urllib.parse
 import urllib.request
 from typing import Any
-import sys
+
 from tabulate import tabulate
-import datetime
+
+from db.session import session_scope
+from .nbn_ingest import ingest_nbn_page
 
 
 # (min_lon, min_lat, max_lon, max_lat) in WGS84 lon/lat.
@@ -74,6 +79,11 @@ def main() -> int:
 
     occs: list[dict[str, Any]] = []
     total_records: Any = None
+    persist = bool(os.environ.get("DATABASE_URL"))
+    total_taxa_upserted = 0
+    total_occ_upserted = 0
+    total_skip_species = 0
+    total_skip_uuid = 0
 
     for page in range(NUM_PAGES):
         start_index = page * PAGE_SIZE
@@ -92,10 +102,20 @@ def main() -> int:
         if total_records is None:
             total_records = payload.get("totalRecords")
         page_occs = payload.get("occurrences") or []
+        page_dicts: list[dict[str, Any]] = []
         if isinstance(page_occs, list):
             for o in page_occs:
                 if isinstance(o, dict):
                     occs.append(o)
+                    page_dicts.append(o)
+
+        if persist and page_dicts:
+            with session_scope() as db:
+                st = ingest_nbn_page(db, page_dicts)
+            total_taxa_upserted += st.taxa_upserted
+            total_occ_upserted += st.occurrences_upserted
+            total_skip_species += st.skipped_no_species_guid
+            total_skip_uuid += st.skipped_no_uuid
 
     def _short_name(v: Any) -> str:
         s = "" if v is None else str(v)
@@ -137,8 +157,13 @@ def main() -> int:
     print(tabulate(rows, headers=headers, tablefmt="simple"))
 
     # Small footer to stderr so piping stays clean.
-    print(
+    parts = [
         f"Done. totalRecords={total_records} fetched={len(occs)} pages={NUM_PAGES} pageSize={PAGE_SIZE}",
-        file=sys.stderr,
-    )
+    ]
+    if persist:
+        parts.append(
+            f"db upserted taxa={total_taxa_upserted} occurrences={total_occ_upserted} "
+            f"skipped_no_speciesGuid={total_skip_species} skipped_no_uuid={total_skip_uuid}"
+        )
+    print(" ".join(parts), file=sys.stderr)
     return 0

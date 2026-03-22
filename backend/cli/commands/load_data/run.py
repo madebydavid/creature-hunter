@@ -10,7 +10,9 @@ import numpy as np
 import xarray as xr
 from pyproj import Transformer
 
-from .checkpoint_sqlite import Checkpoint, CheckpointStore
+from db.session import session_scope
+
+from .checkpoint_db import Checkpoint, read_checkpoint, write_checkpoint
 from .ee_embeddings import (
     band_names,
     build_annual_embedding_image,
@@ -35,9 +37,6 @@ EMBEDDING_YEAR = 2025
 TARGET_EPSG = "EPSG:27700"
 # Default to 100m for dev iteration speed.
 SCALE_METERS = 100
-
-_DEFAULT_CHECKPOINT_DB_PATH = os.path.join(os.path.dirname(__file__), "checkpoints.sqlite")
-CHECKPOINT_DB_PATH = os.environ.get("CHECKPOINT_DB_PATH", _DEFAULT_CHECKPOINT_DB_PATH)
 
 
 @dataclass(frozen=True)
@@ -212,12 +211,11 @@ def main() -> int:
     sink.ensure_collection()
     existing = sink.num_entities()
     job_id = _job_id(col_name)
-    ckpt_store = CheckpointStore(CHECKPOINT_DB_PATH)
-    ckpt_db = ckpt_store.connect()
-    ckpt = ckpt_store.read(ckpt_db, job_id)
+    with session_scope() as db:
+        ckpt = read_checkpoint(db, job_id)
     print(
         f"Milvus collection loaded: {col_name} entities={existing} "
-        f"checkpoint_job={job_id} checkpoint_db={CHECKPOINT_DB_PATH} "
+        f"checkpoint_job={job_id} checkpoints_table=embedding_ingest_checkpoint "
         f"next_block=({ckpt.next_by},{ckpt.next_bx}) ckpt_written={ckpt.total_written}"
     )
 
@@ -318,11 +316,16 @@ def main() -> int:
             nb = (by, bx + 1)
         else:
             nb = (by + 1, 0)
-        ckpt_store.write(
-            ckpt_db,
-            job_id,
-            Checkpoint(next_by=nb[0], next_bx=nb[1], total_written=existing + total_rows_written),
-        )
+        with session_scope() as db:
+            write_checkpoint(
+                db,
+                job_id,
+                Checkpoint(
+                    next_by=nb[0],
+                    next_bx=nb[1],
+                    total_written=existing + total_rows_written,
+                ),
+            )
 
     return 0
 

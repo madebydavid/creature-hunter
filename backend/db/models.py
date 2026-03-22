@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+import datetime
 from typing import Any
 
-from sqlalchemy import BigInteger, Boolean, Float, ForeignKey, String, SmallInteger
+from sqlalchemy import BigInteger, Boolean, DateTime, Float, ForeignKey, Integer, String, SmallInteger
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -90,4 +91,20 @@ class Occurrence(Base):
 
     # Forward-compat: keep the entire incoming record.
     raw_payload: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+
+
+class EmbeddingIngestCheckpoint(Base):
+    """Resume cursor for AlphaEarth → Milvus embedding ingest (`load-data` CLI)."""
+
+    __tablename__ = "embedding_ingest_checkpoint"
+
+    job_id: Mapped[str] = mapped_column(String(255), primary_key=True)
+
+    next_block_y: Mapped[int] = mapped_column(Integer, nullable=False)
+    next_block_x: Mapped[int] = mapped_column(Integer, nullable=False)
+    total_written: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    updated_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+    )
 

@@ -85,6 +85,8 @@ services:
       milvus:
         condition: service_healthy
     environment:
+      # So `db`, `cli`, etc. resolve when running `alembic`, `python -m cli`, etc. from /app.
+      PYTHONPATH: /app
       # Writable cache for uid 1000 (no home dir); build uses root’s default cache instead.
       UV_CACHE_DIR: /tmp/uv-cache
       MILVUS_HOST: milvus
