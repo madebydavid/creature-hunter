@@ -7,19 +7,21 @@ RUN apt-get update \
     ca-certificates \
     curl \
     python3 \
-    python3-pip \
-    python3-venv \
   && groupadd -r app \
   && useradd -r -g app -d /app -s /usr/sbin/nologin app \
   && rm -rf /var/lib/apt/lists/*
 
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
 WORKDIR /app
 
-RUN python3 -m venv /opt/venv
+# Keep the venv outside /app so bind-mounting ./backend:/app in Compose does not hide dependencies.
+RUN uv venv /opt/venv --python python3
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev
 
 COPY . .
 

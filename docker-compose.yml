@@ -85,6 +85,8 @@ services:
       milvus:
         condition: service_healthy
     environment:
+      # Writable cache for uid 1000 (no home dir); build uses root’s default cache instead.
+      UV_CACHE_DIR: /tmp/uv-cache
       MILVUS_HOST: milvus
       MILVUS_PORT: "19530"
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}

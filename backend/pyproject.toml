@@ -1,0 +1,23 @@
+[project]
+name = "creature-hunter-backend"
+version = "0.1.0"
+description = "Creature Hunter FastAPI backend"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "earthengine-api",
+    "xee==0.0.20",
+    "xarray",
+    "pymilvus",
+    "pyproj",
+    "numpy",
+    "tabulate",
+    "typer",
+    "sqlalchemy",
+    "alembic",
+    "psycopg[binary]",
+]
+
+[tool.uv]
+package = false

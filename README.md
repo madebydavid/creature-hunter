@@ -8,6 +8,36 @@ Docker Compose stack with:
 
 - Docker + Docker Compose v2 (`docker compose ...`)
 
+## Python dependencies (backend, uv)
+
+The backend uses [`backend/pyproject.toml`](backend/pyproject.toml) and a committed [`backend/uv.lock`](backend/uv.lock). You do **not** need uv installed on the host.
+
+**Refresh the lockfile** after editing dependencies in `pyproject.toml` (from the repo root, with the backend image built):
+
+```bash
+docker compose run --rm --no-deps backend uv lock --python 3.11
+```
+
+If the stack is already running, the same command works with `exec` instead of `run`:
+
+```bash
+docker compose exec backend uv lock --python 3.11
+```
+
+Because `./backend` is bind-mounted to `/app`, `uv.lock` updates appear on your machine—commit that file.
+
+**Apply a new lockfile to the installed packages** in the image (after `uv.lock` changes):
+
+```bash
+docker compose build backend
+```
+
+To refresh `/opt/venv` inside a running container without rebuilding (optional):
+
+```bash
+docker compose exec -u root backend uv sync --frozen --no-dev
+```
+
 ## Environment setup
 
 Copy the example env file and adjust as needed:
