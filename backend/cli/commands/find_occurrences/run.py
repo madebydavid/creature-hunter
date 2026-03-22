@@ -12,7 +12,7 @@ SEUK_BBOX = (-1.9, 50.4, 1.9, 52.3)
 
 BASE_URL = "https://records-ws.nbnatlas.org/occurrences/search"
 PAGE_SIZE = 1000
-NUM_PAGES = 3   # fetch 3 pages for hello-world
+NUM_PAGES = 3  # fetch 3 pages for hello-world
 
 # Output shaping (to keep console rows short / not wrapping)
 NAME_MAX_LEN = 34
@@ -30,6 +30,7 @@ LATLON_DECIMALS = 4
 UNCERTAINTY_FQ = '(coordinateUncertaintyInMeters:"7.1" OR coordinateUncertaintyInMeters:"70.7")'
 # Kingdom filter: focus on Animalia only.
 KINGDOM_FQ = 'kingdom:"Animalia"'
+
 
 # Exact trailing window: "2 years ago" (UTC), using the NBN `eventDate` field.
 #
@@ -56,7 +57,7 @@ def _http_get_json(url: str, *, timeout_s: float = 30.0) -> dict[str, Any]:
         url,
         headers={
             "Accept": "application/json",
-            "User-Agent": "creature-hunter/0.1 (find_occurrences.py)",
+            "User-Agent": "creature-hunter/0.1 (cli find-occurrences)",
         },
         method="GET",
     )
@@ -141,12 +142,3 @@ def main() -> int:
         file=sys.stderr,
     )
     return 0
-
-
-if __name__ == "__main__":
-    try:
-        raise SystemExit(main())
-    except Exception as e:
-        print(f"ERROR: {e}", file=sys.stderr)
-        raise
-

@@ -87,4 +87,3 @@ def open_xarray_dataset(
         scale=scale_m,
         chunks=chunks,
     )
-

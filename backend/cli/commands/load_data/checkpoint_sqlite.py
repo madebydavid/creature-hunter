@@ -72,4 +72,3 @@ class CheckpointStore:
         except Exception:
             conn.rollback()
             raise
-

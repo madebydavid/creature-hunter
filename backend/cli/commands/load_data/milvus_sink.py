@@ -53,4 +53,3 @@ class MilvusSink:
         if not self.collection:
             raise RuntimeError("Collection not initialized")
         self.collection.flush()
-

@@ -54,6 +54,22 @@ services:
       retries: 3
       start_period: 90s
 
+  postgres:
+    image: postgres:16
+    container_name: creature-hunter-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
   backend:
     build:
       context: ./backend
@@ -64,11 +80,14 @@ services:
     volumes:
       - ./backend:/app
     depends_on:
+      postgres:
+        condition: service_healthy
       milvus:
         condition: service_healthy
     environment:
       MILVUS_HOST: milvus
       MILVUS_PORT: "19530"
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/gcp-key.json
     secrets:
       - source: gcp_key
@@ -85,6 +104,7 @@ volumes:
   etcd_data:
   minio_data:
   milvus_data:
+  postgres_data:
 
 secrets:
   gcp_key:

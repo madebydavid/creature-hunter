@@ -3,16 +3,23 @@ import os
 import sys
 import time
 from dataclasses import dataclass
-from typing import Iterable, Optional
+from typing import Iterable
 import hashlib
 
 import numpy as np
 import xarray as xr
 from pyproj import Transformer
 
-from checkpoint_sqlite import Checkpoint, CheckpointStore
-from ee_embeddings import band_names, build_annual_embedding_image, init_ee, load_key_json, open_xarray_dataset, require_env
-from milvus_sink import MilvusSink
+from .checkpoint_sqlite import Checkpoint, CheckpointStore
+from .ee_embeddings import (
+    band_names,
+    build_annual_embedding_image,
+    init_ee,
+    load_key_json,
+    open_xarray_dataset,
+    require_env,
+)
+from .milvus_sink import MilvusSink
 
 
 EMB_DIM = 64
@@ -56,6 +63,7 @@ def _fmt_eta(seconds: float) -> str:
         return f"{h}h{m:02d}m"
     return f"{m}m{s:02d}s"
 
+
 def _job_id(target_collection: str) -> str:
     # Tie checkpoint to ingest config so changes don’t collide.
     payload = {
@@ -69,6 +77,7 @@ def _job_id(target_collection: str) -> str:
     }
     digest = hashlib.sha1(json.dumps(payload, sort_keys=True).encode("utf-8")).hexdigest()
     return f"{target_collection}:{digest[:12]}"
+
 
 def _grid_origin_from_coords(x_coords: np.ndarray, y_coords: np.ndarray) -> GridOrigin:
     # Use the minimum coord as the origin so ix/iy are non-negative.
@@ -328,4 +337,3 @@ if __name__ == "__main__":
             file=sys.stderr,
         )
         raise
-
